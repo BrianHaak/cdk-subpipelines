@@ -55,7 +55,7 @@ export class RootPipelineStack extends cdk.Stack {
     // defines the github repo and branch to pull source from
     const source = CodePipelineSource.gitHub(
       "BrianHaak/cdk-subpipelines",
-      "master",
+      "main",
       {
         authentication: cdk.SecretValue.secretsManager("brianhaak/gh_token", {
           jsonField: "github_token",
