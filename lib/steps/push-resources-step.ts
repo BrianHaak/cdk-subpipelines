@@ -21,6 +21,7 @@ export class PushResourcesStep extends Construct {
     this.step = new pipelines.CodeBuildStep("pusher", {
       input: props.input,
       commands: [
+        "ls -la",
         "mkdir files",
         "mv * files || true",
         "mv files cdk.out", // the subpipelines synth step looks for a folder called cdk.out, thus we need to move the files there

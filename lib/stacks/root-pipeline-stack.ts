@@ -68,9 +68,12 @@ export class RootPipelineStack extends cdk.Stack {
       input: source,
       installCommands: ["npm install -g aws-cdk"],
       commands: ["npm ci", "npm run build", "npx cdk synth"],
-    });
+    })
+    
+    const sourceFileSet = build.addOutputDirectory("/");
 
     const pipeline = new CodePipeline(this, "bh-Pipeline", {
+      pipelineName: "bh-root-pipeline",
       synth: build,
       selfMutation: true,
       publishAssetsInParallel: false,
@@ -85,7 +88,7 @@ export class RootPipelineStack extends cdk.Stack {
     });
 
     const dev1pushStep = new PushResourcesStep("bhdev1-push", {
-      input: pipeline.cloudAssemblyFileSet,
+      input: sourceFileSet,
       assetBucket: sharedAssetsBucket,
       pipelineName: pipelineNames.dev1,
     });
@@ -105,7 +108,7 @@ export class RootPipelineStack extends cdk.Stack {
     });
 
     const dev2pushStep = new PushResourcesStep("bhdev2-push", {
-      input: pipeline.cloudAssemblyFileSet,
+      input: sourceFileSet,
       assetBucket: sharedAssetsBucket,
       pipelineName: pipelineNames.dev2,
     });
@@ -125,7 +128,7 @@ export class RootPipelineStack extends cdk.Stack {
     });
 
     const qapushStep = new PushResourcesStep("bhqa-push", {
-      input: pipeline.cloudAssemblyFileSet,
+      input: sourceFileSet,
       assetBucket: sharedAssetsBucket,
       pipelineName: pipelineNames.qa,
     });
