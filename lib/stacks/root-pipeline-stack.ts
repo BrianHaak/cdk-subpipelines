@@ -54,7 +54,7 @@ export class RootPipelineStack extends cdk.Stack {
 
     // defines the github repo and branch to pull source from
     const source = CodePipelineSource.gitHub(
-      "BrianHaak/aws-cdk-intro-workshop",
+      "BrianHaak/cdk-subpipelines",
       "master",
       {
         authentication: cdk.SecretValue.secretsManager("brianhaak/gh_token", {
