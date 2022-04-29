@@ -21,11 +21,11 @@ export class PushResourcesStep extends Construct {
     this.step = new pipelines.CodeBuildStep("pusher", {
       input: props.input,
       commands: [
-        "ls -la",
-        "mkdir files",
-        "mv * files || true",
-        "mv files cdk.out", // the subpipelines synth step looks for a folder called cdk.out, thus we need to move the files there
-        "zip -r cdk.out.zip *", // the subpipelines s3 source action expects a zip file
+        // "ls -la",
+        // "mkdir files",
+        // "mv * files || true",
+        // "mv files cdk.out", // the subpipelines synth step looks for a folder called cdk.out, thus we need to move the files there
+        "zip -r cdk.out.zip cdk.out", // the subpipelines s3 source action expects a zip file
         "aws s3 cp cdk.out.zip s3://$BUCKET_NAME/$PIPELINE_NAME/cdk.out.zip",
       ],
       env: {

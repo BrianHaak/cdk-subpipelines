@@ -67,7 +67,7 @@ export class RootPipelineStack extends cdk.Stack {
     const build = new CodeBuildStep("SynthStep", {
       input: source,
       installCommands: ["npm install -g aws-cdk"],
-      commands: ["npm ci", "npm run build", "npx cdk synth", "pwd", "ls -la"],
+      commands: ["npm ci", "npm run build", "npx cdk synth"],
     })
     
     const sourceFileSet = build.addOutputDirectory("./");
