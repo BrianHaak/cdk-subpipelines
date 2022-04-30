@@ -51,10 +51,10 @@ export class SubPipelineStack extends cdk.Stack {
       selfMutation: false,
       publishAssetsInParallel: false,
       synth: new CodeBuildStep(`${env}-Synth`, {
-        input: CodePipelineSource.s3(bucket, `${pipelineName}/cdk.out.zip`, {
+        input: CodePipelineSource.s3(bucket, `${pipelineName}/source.zip`, {
           trigger: cdk.aws_codepipeline_actions.S3Trigger.NONE, // this can be turned off if the pipeline execution is triggered by the root pipeline deployer action
         }),
-        commands: ["ls"], // don't actually have to do anything since the cdk project was already synthed
+        commands: ["ls -la", "cd source"], // don't actually have to do anything since the cdk project was already synthed
       }),
     });
 

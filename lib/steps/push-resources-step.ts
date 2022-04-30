@@ -25,8 +25,8 @@ export class PushResourcesStep extends Construct {
         // "mkdir files",
         // "mv * files || true",
         // "mv files cdk.out", // the subpipelines synth step looks for a folder called cdk.out, thus we need to move the files there
-        "zip -r cdk.out.zip cdk.out", // the subpipelines s3 source action expects a zip file
-        "aws s3 cp cdk.out.zip s3://$BUCKET_NAME/$PIPELINE_NAME/cdk.out.zip",
+        "zip -r source.zip *", // the subpipelines s3 source action expects a zip file
+        "aws s3 cp source.zip s3://$BUCKET_NAME/$PIPELINE_NAME/cdk.out.zip",
       ],
       env: {
         BUCKET_NAME: props.assetBucket.bucketName,
