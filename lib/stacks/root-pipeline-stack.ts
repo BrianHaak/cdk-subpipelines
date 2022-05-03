@@ -10,7 +10,7 @@ export class RootPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // pipeline name needs to be static/predictable for the deployer action to work
+    // pipeline names needs to be static/predictable for the deployer action to work
     const pipelineNames = {
       dev1: "bhdev-subpipeline",
       dev2: "bhdev2-pipeline",
@@ -35,8 +35,6 @@ export class RootPipelineStack extends cdk.Stack {
       codeSource: source,
     });
 
-    // each of these stages kick off the deployment of a sub pipeline.
-    // you would have one for each account, region, and env+region combo.
     const deploydev1 = new EnvStage(this, "bhdev-Stage", {
       environmentName: "bhdev",
       bucketParam: rootPipeline.bucketParamName,
@@ -55,7 +53,8 @@ export class RootPipelineStack extends cdk.Stack {
       subPipelinename: pipelineNames.qa,
     });
 
-    // waves can be used to group stages so that they are deployed in parallel
+    // SubPipelineSets can be used to group stages so that they are deployed in parallel
+    // they additionally handle the execution of the sub pipeline
     const devDeployPipeWave = rootPipeline.pipeline.addSubPipelineSet("bhdevPipes");
     devDeployPipeWave.addSubPipeline(deploydev1, {pipelineName: pipelineNames.dev1});
     devDeployPipeWave.addSubPipeline(deploydev2, {pipelineName: pipelineNames.dev2});
