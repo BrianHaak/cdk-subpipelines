@@ -13,7 +13,7 @@ import { PushResourcesStep } from "../steps/pusher-step";
 import { StepFunctionInvokeStep } from "../steps/step-function-invoke-step";
 import { PipelineRunnerStepFunction } from "../constructs/pipeline-executioner-sf";
 
-interface addSubPipelineOpts {
+interface AddSubPipelineOpts {
     pipelineName: string;
 }
 
@@ -36,8 +36,7 @@ class SubPipelineSet extends pipelines.Wave {
         this.stateMachine = waveResources.stateMachine;
     };
 
-    public addSubPipeline(stage: Stage, options: addSubPipelineOpts): void {
-
+    public addSubPipeline(stage: Stage, options: AddSubPipelineOpts) {
         const pushStep = new PushResourcesStep("Push", {
             input: this.fileSet,
             assetBucket: this.assetBucket,
@@ -75,12 +74,11 @@ class Pipeline extends pipelines.CodePipeline {
         this.fileSet = props.fileSet;
         this.assetBucket = props.assetBucket;
         this.stateMachine = props.stateMachine;
-
     };
 
     public buildPipeline(): void {
         if (this.isBuilt) {
-            throw new Error('build() has already been called: can only call it once');
+            throw new Error('buildPipeline() has already been called: can only call it once');
         }
         super.buildPipeline();
         this.isBuilt = true;
@@ -102,7 +100,8 @@ class Pipeline extends pipelines.CodePipeline {
 
 export interface RootPipelineProps {
     bucketParamName?: string;
-    codeSource: pipelines.CodePipelineSource;
+    codeSource?: pipelines.CodePipelineSource;
+    buildStep?: pipelines.CodeBuildStep;
 };
 
 export class RootPipeline extends Construct {
@@ -115,10 +114,19 @@ export class RootPipeline extends Construct {
     constructor(scope: Construct, id: string, props: RootPipelineProps) {
         super(scope, id);
 
-        this.bucketParamName = props.bucketParamName || "/RootPipeline/AssetBucketArn";
-        this.source = props.codeSource;
+        this.bucketParamName = props.bucketParamName || `/${id}/AssetBucketArn`;
 
-        // this bucket will contain the cdk.out.zip file used by the subpipelines
+        if (!props.codeSource && !props.buildStep) throw new Error('RootPipeline: must specify either codeSource or buildStep');
+
+        const build = props.buildStep || new pipelines.CodeBuildStep("SynthStep", {
+            input: props.codeSource,
+            installCommands: ["npm install -g aws-cdk"],
+            commands: ["npm ci", "npm run build", "npx cdk synth"],
+        });
+        
+        this.sourceFileSet = build.addOutputDirectory("./");
+
+        // this bucket will contain the source.zip file used by the subpipelines
         const sharedAssetsBucket = new s3.Bucket(this, "AssetBucket", {
             autoDeleteObjects: true,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -133,29 +141,13 @@ export class RootPipeline extends Construct {
 
         // if you try to pass the arn directly, cdk fails because the subpipeline cannot
         // depend on the root pipeline. But we can pass a static ssm parameter name.
-        const bucketParam = new ssm.StringParameter(
-            this,
-            "AssestBucketParam",
-            {
-                parameterName: this.bucketParamName,
-                stringValue: sharedAssetsBucket.bucketArn,
-            }
+        new ssm.StringParameter(this, "AssestBucketParam", {
+            parameterName: this.bucketParamName,
+            stringValue: sharedAssetsBucket.bucketArn,
+        }
         );
 
-        const pipelineRunner = new PipelineRunnerStepFunction(
-            this,
-            "PipelineRunner",
-            {}
-        );
-
-        // the synth step builds the cdk app
-        const build = new pipelines.CodeBuildStep("SynthStep", {
-            input: this.source,
-            installCommands: ["npm install -g aws-cdk"],
-            commands: ["npm ci", "npm run build", "npx cdk synth"],
-        });
-
-        this.sourceFileSet = build.addOutputDirectory("./");
+        const pipelineRunner = new PipelineRunnerStepFunction(this, "PipelineRunner", {});
 
         const codePipeline = new Pipeline(this, "RootPipeline", {
             synth: build,
