@@ -29,8 +29,7 @@ export interface StepFunctionInvokeProps {
  */
 export class StepFunctionInvokeStep
   extends pipelines.Step
-  implements pipelines.ICodePipelineActionFactory
-{
+  implements pipelines.ICodePipelineActionFactory {
   readonly stateMachine: sfn.StateMachine;
   readonly stateMachineInput: object;
   readonly incrementRunOrder: number;
