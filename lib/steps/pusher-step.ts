@@ -17,7 +17,7 @@ export class PushResourcesStep extends pipelines.CodeBuildStep {
     super(id, {
       input: props.input,
       commands: [
-        "zip -r source.zip *", // the subpipelines s3 source action expects a zip file
+        "zip -r source.zip * -q", // the subpipelines s3 source action expects a zip file
         "aws s3 cp source.zip s3://$BUCKET_NAME/$PIPELINE_NAME/source.zip",
       ],
       env: {

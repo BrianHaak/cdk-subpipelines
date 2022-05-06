@@ -37,13 +37,13 @@ class SubPipelineSet extends pipelines.Wave {
     };
 
     public addSubPipeline(stage: Stage, options: AddSubPipelineOpts) {
-        const pushStep = new PushResourcesStep("Push", {
+        const pushStep = new PushResourcesStep("PushSourceFiles", {
             input: this.fileSet,
             assetBucket: this.assetBucket,
             pipelineName: options.pipelineName,
         });
 
-        const executePipelineStep = new StepFunctionInvokeStep("Execute", {
+        const executePipelineStep = new StepFunctionInvokeStep("ExecuteSubPipeline", {
             stateMachine: this.stateMachine,
             stateMachineInput: {
                 PipelineName: options.pipelineName,
@@ -107,8 +107,8 @@ export interface RootPipelineProps {
 export class RootPipeline extends Construct {
     private readonly source: pipelines.CodePipelineSource;
 
-    public readonly bucketParamName: string;
     public pipeline: Pipeline;
+    public readonly bucketParamName: string;
     public readonly sourceFileSet: pipelines.IFileSetProducer;
 
     constructor(scope: Construct, id: string, props: RootPipelineProps) {
@@ -134,6 +134,7 @@ export class RootPipeline extends Construct {
             lifecycleRules: [
                 {
                     expiration: Duration.days(14),
+                    noncurrentVersionExpiration: Duration.days(3),
                 },
             ],
             versioned: true,
@@ -149,7 +150,7 @@ export class RootPipeline extends Construct {
 
         const pipelineRunner = new PipelineRunnerStepFunction(this, "PipelineRunner", {});
 
-        const codePipeline = new Pipeline(this, "RootPipeline", {
+        this.pipeline = new Pipeline(this, "RootPipeline", {
             synth: build,
             selfMutation: true,
             publishAssetsInParallel: false,
@@ -157,8 +158,6 @@ export class RootPipeline extends Construct {
             stateMachine: pipelineRunner.stateMachine,
             fileSet: this.sourceFileSet,
         });
-
-        this.pipeline = codePipeline;
     };
 
 };

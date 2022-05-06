@@ -53,7 +53,7 @@ export class RootPipelineStack extends cdk.Stack {
       subPipelinename: pipelineNames.qa,
     });
 
-    // SubPipelineSets can be used to group stages so that they are deployed in parallel
+    // SubPipelineSets can be used to group sub pipelines so that they are deployed in parallel
     // they additionally handle the execution of the sub pipeline
     const devDeployPipeWave = rootPipeline.pipeline.addSubPipelineSet("bhdevPipes");
     devDeployPipeWave.addSubPipeline(deploydev1, {pipelineName: pipelineNames.dev1});
