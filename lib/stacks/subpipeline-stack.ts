@@ -50,9 +50,12 @@ export class SubPipelineStack extends cdk.Stack {
       ),
       selfMutation: false,
       publishAssetsInParallel: false,
-      synth: CodePipelineSource.s3(bucket, `${pipelineName}/source.zip`, {
+      synth: new CodeBuildStep(`${env}-Synth`, {
+        input: CodePipelineSource.s3(bucket, `${pipelineName}/source.zip`, {
           trigger: cdk.aws_codepipeline_actions.S3Trigger.NONE,
         }),
+        commands: ["ls"], // don't actually have to do anything since the cdk project was already synthed
+      }),
     });
 
     // these stages are the ones that actually contain your apps stacks.
