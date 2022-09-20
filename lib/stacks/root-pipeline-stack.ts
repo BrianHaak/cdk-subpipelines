@@ -17,8 +17,6 @@ export class RootPipelineStack extends cdk.Stack {
       qa: "bhqa-pipeline",
     };
 
-    const bucketParamName = "/bh/root-pipeline-asset-bucket-arn";
-
     // defines the github repo and branch to pull source from
     const source = CodePipelineSource.gitHub(
       "BrianHaak/cdk-subpipelines",
@@ -30,8 +28,11 @@ export class RootPipelineStack extends cdk.Stack {
       }
     );
 
+    // you can define a bucketarn parameter name, else RootPipeline will use a default parameter name
+    //const bucketParamName = "/bh/root-pipeline-asset-bucket-arn";
+
     const rootPipeline = new RootPipeline(this, "RootPipeline", {
-      bucketParamName: bucketParamName,
+      //bucketParamName: bucketParamName,
       codeSource: source,
     });
 
@@ -55,11 +56,12 @@ export class RootPipelineStack extends cdk.Stack {
 
     // SubPipelineSets can be used to group sub pipelines so that they are deployed in parallel
     // they additionally handle the execution of the sub pipeline
-    const devDeployPipeWave = rootPipeline.pipeline.addSubPipelineSet("bhdevPipes");
-    devDeployPipeWave.addSubPipeline(deploydev1, {pipelineName: pipelineNames.dev1});
-    devDeployPipeWave.addSubPipeline(deploydev2, {pipelineName: pipelineNames.dev2});
+    
+    const devDeployPipeSet = rootPipeline.pipeline.addSubPipelineSet("bhdevPipes");
+    devDeployPipeSet.addSubPipeline(deploydev1, {pipelineName: pipelineNames.dev1});
+    devDeployPipeSet.addSubPipeline(deploydev2, {pipelineName: pipelineNames.dev2});
 
-    const qaWave = rootPipeline.pipeline.addSubPipelineSet("bhqaPipes");
-    qaWave.addSubPipeline(deployqa, {pipelineName: pipelineNames.qa});
+    const qaSet = rootPipeline.pipeline.addSubPipelineSet("bhqaPipes");
+    qaSet.addSubPipeline(deployqa, {pipelineName: pipelineNames.qa});
   }
 }
